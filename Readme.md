@@ -6,7 +6,7 @@ The aws-iot-device-sdk-go package allows developers to write Go lang application
 ```
 package main
 import (
-    "github.com/parklin/aws-iot-device-sdk"
+    "github.com/parklin/aws-iot-device-sdk-go/device"
     "fmt"
 )
 
@@ -52,7 +52,7 @@ func NewThing(keyPair KeyPair, thingName ThingName, region Region) (*Thing, erro
 ```
 ```
 // GetThingShadow gets the current thing shadow
-func (t *Thing) GetThingShadow() (Shadow, error
+func (t *Thing) GetThingShadow() (Shadow, error)
 ```
 ```
 // UpdateThingShadow publish a message with new thing shadow
