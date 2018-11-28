@@ -49,6 +49,7 @@ func NewThing(keyPair KeyPair, thingName ThingName, region Region) (*Thing, erro
 
 	c := mqtt.NewClient(mqttOpts)
 	token := c.Connect()
+	token.Wait()
 
 	return &Thing{
 		client:    c,
@@ -85,7 +86,7 @@ func (t *Thing) GetThingShadow() (Shadow, error) {
 		fmt.Sprintf("$aws/things/%s/shadow/get", t.thingName),
 		0,
 		false,
-		nil,
+		[]byte("{}"),
 	); token.Wait() && token.Error() != nil {
 		return nil, token.Error()
 	}
@@ -108,7 +109,7 @@ func (t *Thing) GetThingShadow() (Shadow, error) {
 
 // UpdateThingShadow publish a message with new thing shadow
 func (t *Thing) UpdateThingShadow(payload Shadow) error {
-	token := t.client.Publish(fmt.Sprintf("$aws/things/%s/shadow/update", t.thingName), 0, false, payload)
+	token := t.client.Publish(fmt.Sprintf("$aws/things/%s/shadow/update", t.thingName), 0, false, []byte(payload))
 	token.Wait()
 	return token.Error()
 }
