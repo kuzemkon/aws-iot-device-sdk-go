@@ -2,11 +2,13 @@ package device
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"time"
 
-	mqtt "github.com/eclipse/paho.mqtt.golang"
+	"github.com/eclipse/paho.mqtt.golang"
 )
 
 // Thing a structure for working with the AWS IoT device shadows
@@ -23,8 +25,9 @@ type Region string
 
 // KeyPair the structure contains the path to the AWS MQTT credentials
 type KeyPair struct {
-	PrivateKeyPath  string
-	CertificatePath string
+	PrivateKeyPath    string
+	CertificatePath   string
+	CACertificatePath string
 }
 
 // Shadow device shadow data
@@ -33,6 +36,23 @@ type Shadow []byte
 // NewThing returns a new instance of Thing
 func NewThing(keyPair KeyPair, thingName ThingName, region Region) (*Thing, error) {
 	tlsCert, err := tls.LoadX509KeyPair(keyPair.CertificatePath, keyPair.PrivateKeyPath)
+
+	certs := x509.NewCertPool()
+
+	caPem, err := ioutil.ReadFile(keyPair.CACertificatePath)
+	if err != nil {
+		return nil, err
+	}
+
+	certs.AppendCertsFromPEM(caPem)
+
+	tlsConfig := &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+	}
+
+	tlsConfig.RootCAs = certs
+
+
 	if err != nil {
 		return nil, err
 	}
@@ -43,9 +63,7 @@ func NewThing(keyPair KeyPair, thingName ThingName, region Region) (*Thing, erro
 	mqttOpts.AddBroker(awsServerURL)
 	mqttOpts.SetMaxReconnectInterval(1 * time.Second)
 	mqttOpts.SetClientID(string(thingName))
-	mqttOpts.SetTLSConfig(&tls.Config{
-		Certificates: []tls.Certificate{tlsCert},
-	})
+	mqttOpts.SetTLSConfig(tlsConfig)
 
 	c := mqtt.NewClient(mqttOpts)
 	token := c.Connect()
