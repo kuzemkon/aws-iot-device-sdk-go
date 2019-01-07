@@ -9,11 +9,12 @@ import (
 )
 
 var thingName = ThingName("test")
-var region = Region("us-east-1")
+var endpoint = "a1xumedgml9iv9-ats.iot.us-east-1.amazonaws.com"
+//var region = Region("us-east-1")
 var keyPair = KeyPair{
 	CertificatePath:   "./certificates/cert.pem",
 	PrivateKeyPath:    "./certificates/private.key",
-	CACertificatePath: "./certificates/ca.pem",
+	CACertificatePath: "./certificates/root.ca.pem",
 }
 
 type shadowStruct struct {
@@ -25,13 +26,13 @@ type shadowStruct struct {
 }
 
 func TestNewThing(t *testing.T) {
-	thing, err := NewThing(keyPair, thingName, region)
+	thing, err := NewThing(keyPair, endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 }
 
 func TestThingShadow(t *testing.T) {
-	thing, err := NewThing(keyPair, thingName, region)
+	thing, err := NewThing(keyPair, endpoint, thingName)
 	assert.NoError(t, err, "thing instance created without error")
 	assert.NotNil(t, thing, "thing instance is not nil")
 

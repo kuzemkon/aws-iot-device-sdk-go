@@ -20,9 +20,6 @@ type Thing struct {
 // ThingName the name of the AWS IoT device representation
 type ThingName string
 
-// Region the AWS region
-type Region string
-
 // KeyPair the structure contains the path to the AWS MQTT credentials
 type KeyPair struct {
 	PrivateKeyPath    string
@@ -34,7 +31,7 @@ type KeyPair struct {
 type Shadow []byte
 
 // NewThing returns a new instance of Thing
-func NewThing(keyPair KeyPair, thingName ThingName, region Region) (*Thing, error) {
+func NewThing(keyPair KeyPair, awsEndpoint string, thingName ThingName) (*Thing, error) {
 	tlsCert, err := tls.LoadX509KeyPair(keyPair.CertificatePath, keyPair.PrivateKeyPath)
 
 	certs := x509.NewCertPool()
@@ -48,16 +45,14 @@ func NewThing(keyPair KeyPair, thingName ThingName, region Region) (*Thing, erro
 
 	tlsConfig := &tls.Config{
 		Certificates: []tls.Certificate{tlsCert},
+		RootCAs: certs,
 	}
-
-	tlsConfig.RootCAs = certs
-
 
 	if err != nil {
 		return nil, err
 	}
 
-	awsServerURL := fmt.Sprintf("ssl://data.iot.%s.amazonaws.com:8883", region)
+	awsServerURL := fmt.Sprintf("ssl://%s:8883", awsEndpoint)
 
 	mqttOpts := mqtt.NewClientOptions()
 	mqttOpts.AddBroker(awsServerURL)
@@ -66,13 +61,14 @@ func NewThing(keyPair KeyPair, thingName ThingName, region Region) (*Thing, erro
 	mqttOpts.SetTLSConfig(tlsConfig)
 
 	c := mqtt.NewClient(mqttOpts)
-	token := c.Connect()
-	token.Wait()
+	if token := c.Connect(); token.Wait() && token.Error() != nil {
+		return nil, token.Error()
+	}
 
 	return &Thing{
 		client:    c,
 		thingName: thingName,
-	}, token.Error()
+	}, nil
 }
 
 // GetThingShadow gets the current thing shadow
