@@ -15,9 +15,10 @@ func main() {
         device.KeyPair{
             PrivateKeyPath: "path/to/private/key",
             CertificatePath: "path/to/certificate",
+            CACertificatePath: "path/to/rootCA",
         },
+        "xxxxxxxxxx.iot.us-east-1.amazonaws.com",  // AWS IoT endpoint
         device.ThingName("thing_name"),
-        device.Region("eu-west-1"),
     )
     if err != nil {
         panic(err)
