@@ -4,14 +4,31 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"os"
 	"testing"
 	"time"
 )
 
-var thingName = "test"
-var endpoint = "a1xumedgml9iv9-ats.iot.us-east-1.amazonaws.com"
+var thingName = ""
+var endpoint = ""
 
-//var region = Region("us-east-1")
+func TestMain(m *testing.M) {
+	var ok bool
+
+	thingName, ok = os.LookupEnv("AWS_IOT_THING_NAME")
+	if !ok {
+		panic("AWS_IOT_THING_NAME environment variable must be defined")
+	}
+
+	endpoint, ok = os.LookupEnv("AWS_MQTT_ENDPOINT")
+	if !ok {
+		panic("AWS_MQTT_ENDPOINT environment variable must be defined")
+	}
+
+	code := m.Run()
+	os.Exit(code)
+}
+
 var keyPair = KeyPair{
 	CertificatePath:   "./certificates/cert.pem",
 	PrivateKeyPath:    "./certificates/private.key",

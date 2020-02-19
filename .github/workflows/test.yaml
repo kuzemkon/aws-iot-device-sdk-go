@@ -1,0 +1,33 @@
+name: Test
+on: push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        name: actions
+        with:
+          ref: ${{ github.ref }}
+      - uses: actions/setup-go@v1
+        name: golang
+        with:
+          go-version: '1.14'
+      - name: place certificates
+        env:
+          AWS_IOT_ROOT_CERT: ${{ secrets.AWS_IOT_ROOT_CERT }}
+          AWS_IOT_CERT: ${{ secrets.AWS_IOT_CERT }}
+          AWS_IOT_KEY: ${{ secrets.AWS_IOT_KEY }}
+        run: |
+          mkdir -p ./device/certificates
+          printf %s "$AWS_IOT_ROOT_CERT" > ./device/certificates/root.ca.pem
+          printf %s "$AWS_IOT_CERT" > ./device/certificates/cert.pem
+          printf %s "$AWS_IOT_KEY" > ./device/certificates/private.key
+      - name: test
+        env:
+          AWS_IOT_THING_NAME: ${{ secrets.AWS_IOT_THING_NAME }}
+          AWS_MQTT_ENDPOINT: ${{ secrets.AWS_MQTT_ENDPOINT }}
+        run: |
+          export PATH=$PATH:$(go env GOPATH)/bin
+          eval $(go env)
+          go test ./device -v
