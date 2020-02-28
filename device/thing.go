@@ -42,6 +42,9 @@ type ShadowError = Shadow
 // NewThing returns a new instance of Thing
 func NewThing(keyPair KeyPair, awsEndpoint string, thingName ThingName) (*Thing, error) {
 	tlsCert, err := tls.LoadX509KeyPair(keyPair.CertificatePath, keyPair.PrivateKeyPath)
+	if err != nil {
+		return nil ,fmt.Errorf("failed to load the certificates: %v", err)
+	}
 
 	certs := x509.NewCertPool()
 
