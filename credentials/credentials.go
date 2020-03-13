@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"time"
 )
@@ -59,23 +60,31 @@ func (s Service) GetCredentials() (Output, error) {
 
 	req, err := http.NewRequest("GET", s.url, nil)
 	if err != nil {
-		return Output{}, fmt.Errorf("failed to create the credenitals request: %v", err)
+		return Output{}, fmt.Errorf("failed to create the credentials request: %v", err)
 	}
 
 	req.Header.Add("x-amzn-iot-thingname", s.thingName)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return Output{}, fmt.Errorf("failed to perform the GET credenitals request: %v", err)
+		return Output{}, fmt.Errorf("failed to perform the GET credentials request: %v", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return Output{}, fmt.Errorf("failed to parse the response body: %v", err)
+		}
+
+		return Output{}, fmt.Errorf("the request has failed with the status code: %d; message: %s", resp.StatusCode, string(body))
+	}
 
 	result := struct {
 		Credentials Output `json:"credentials"`
 	}{}
 
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return Output{}, fmt.Errorf("failed to parse credenitals response body: %v", err)
+		return Output{}, fmt.Errorf("failed to parse credentials response body: %v", err)
 	}
 
 	return result.Credentials, nil
