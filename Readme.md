@@ -1,7 +1,7 @@
 # AWS IoT SDK for Go lang
 The aws-iot-device-sdk-go package allows developers to write Go lang applications which access the AWS IoT Platform via MQTT.
 ## Install
-`go get "github.com/kuzemkon/aws-iot-device-sdk"`
+`go get "github.com/kuzemkon/aws-iot-device-sdk-go"`
 ## Example
 ```
 package main
